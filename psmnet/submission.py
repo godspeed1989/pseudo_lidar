@@ -95,8 +95,8 @@ def main():
 
    for inx in range(len(test_left_img)):
 
-       imgL_o = (skimage.io.imread(test_left_img[inx]).astype('float32'))
-       imgR_o = (skimage.io.imread(test_right_img[inx]).astype('float32'))
+       imgL_o = skimage.io.imread(test_left_img[inx])
+       imgR_o = skimage.io.imread(test_right_img[inx])
        imgL = processed(imgL_o).numpy()
        imgR = processed(imgR_o).numpy()
        imgL = np.reshape(imgL,[1,3,imgL.shape[1],imgL.shape[2]])

@@ -2,7 +2,7 @@ import argparse
 import os
 
 import numpy as np
-import scipy.misc as ssc
+import cv2
 
 import kitti_util
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
         predix = fn[:-4]
         calib_file = '{}/{}.txt'.format(args.calib_dir, predix)
         calib = kitti_util.Calibration(calib_file)
-        disp_map = ssc.imread(args.disparity_dir + '/' + fn) / 256.
+        disp_map = cv2.imread(args.disparity_dir + '/' + fn, 0) / 256.
         lidar = project_disp_to_depth(calib, disp_map, args.max_high)
         # pad 1 in the indensity dimension
         lidar = np.concatenate([lidar, np.ones((lidar.shape[0], 1))], 1)

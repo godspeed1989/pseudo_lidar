@@ -2,7 +2,7 @@ import argparse
 import os
 
 import numpy as np
-import scipy.misc as ssc
+import cv2
 
 import kitti_util
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
         # load point cloud
         lidar = np.fromfile(lidar_dir + '/' + fn, dtype=np.float32).reshape((-1, 4))[:, :3]
         image_file = '{}/{}.png'.format(image_dir, predix)
-        image = ssc.imread(image_file)
+        image = cv2.imread(image_file)
         height, width = image.shape[:2]
         disp = generate_dispariy_from_velo(lidar, height, width, calib)
         np.save(disparity_dir + '/' + predix, disp)
