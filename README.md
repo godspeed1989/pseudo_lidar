@@ -99,28 +99,28 @@ python ./psmnet/finetune_3d.py --maxdisp 192 \
 ```angular2html
 # training
 python ./psmnet/submission.py \
-    --loadmodel ./psmnet/kitti_3d/finetune_300.tar \
-    --datapath ./KITTI/object/training/ \
-    --save_path ./KITTI/object/training/predict_disparity
+    --loadmodel ./finetune_300.tar \
+    --datapath /mine/KITTI_DAT/training/ \
+    --save_path ./training_predict_disparity
 # testing
 python ./psmnet/submission.py \
-    --loadmodel ./psmnet/kitti_3d/finetune_300.tar \
-    --datapath ./KITTI/object/testing/ \
-    --save_path ./KITTI/object/testing/predict_disparity
+    --loadmodel ./finetune_300.tar \
+    --datapath /mine/KITTI_DAT/testing/ \
+    --save_path ./testing_predict_disparity
 ```
 ##### Convert the disparities to point clouds.
 ```angular2html
 # training
 python ./preprocessing/generate_lidar.py  \
-    --calib_dir ./KITTI/object/training/calib/ \
-    --save_dir ./KITTI/object/training/pseudo-lidar_velodyne/ \
-    --disparity_dir ./KITTI/object/training/predict_disparity \
+    --calib_dir /mine/KITTI_DAT/training/calib/ \
+    --save_dir ./training_predict_velodyne/ \
+    --disparity_dir ./training_predict_disparity \
     --max_high 1
 # testing
 python ./preprocessing/generate_lidar.py  \
-    --calib_dir ./KITTI/object/testing/calib/ \
-    --save_dir ./KITTI/object/testing/pseudo-lidar_velodyne/ \
-    --disparity_dir ./KITTI/object/testing/predict_disparity \
+    --calib_dir /mine/KITTI_DAT/testing/calib/ \
+    --save_dir ./testing_predict_velodyne/ \
+    --disparity_dir ./testing_predict_disparity \
     --max_high 1
 ```
 

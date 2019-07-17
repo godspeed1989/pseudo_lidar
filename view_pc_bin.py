@@ -13,7 +13,7 @@ class plot3d(object):
         coord = gl.GLAxisItem()
         glLineWidth(1)
         coord.setSize(1,1,1)
-        self.glview.addItem(coord)
+        #self.glview.addItem(coord)
         self.glview.setMinimumSize(QtCore.QSize(600, 500))
         self.glview.pan(1, 0, 0)
         self.glview.setCameraPosition(azimuth=180)
