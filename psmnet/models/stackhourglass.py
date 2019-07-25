@@ -1,6 +1,9 @@
 from __future__ import print_function
 
-from .submodule import *
+if __name__ == "__main__":
+    from submodule import *
+else:
+    from .submodule import *
 import torch
 import torch.nn as nn
 import torch.utils.data
@@ -107,14 +110,16 @@ class PSMNet(nn.Module):
                 m.bias.data.zero_()
 
     def forward(self, left, right):
-
+        # (b, c, h/4, w/4)
         refimg_fea = self.feature_extraction(left)
         targetimg_fea = self.feature_extraction(right)
 
         # matching
+        # cost volume  (b, 2*c, 192//4, H/4, W/4)
         cost = Variable(
-            torch.FloatTensor(refimg_fea.size()[0], refimg_fea.size()[1] * 2, self.maxdisp // 4, refimg_fea.size()[2],
-                              refimg_fea.size()[3]).zero_()).cuda()
+            torch.FloatTensor(refimg_fea.size()[0], refimg_fea.size()[1] * 2,
+                              self.maxdisp // 4,
+                              refimg_fea.size()[2], refimg_fea.size()[3]).zero_()).cuda()
 
         for i in range(self.maxdisp // 4):
             if i > 0:
@@ -125,18 +130,26 @@ class PSMNet(nn.Module):
                 cost[:, refimg_fea.size()[1]:, i, :, :] = targetimg_fea
         cost = cost.contiguous()
 
+        # convs:
+        # (b, c, 192//4, H/4, W/4)
         cost0 = self.dres0(cost)
         cost0 = self.dres1(cost0) + cost0
 
+        # stack hourglass:
+        # out1.shape == cost0.shape
+        # pre1, post1 (b, 2*c, 192//8, H/8, W/8)
         out1, pre1, post1 = self.dres2(cost0, None, None)
         out1 = out1 + cost0
 
+        # pre2, post2 (b, 2*c, 192//8, H/8, W/8)
         out2, pre2, post2 = self.dres3(out1, pre1, post1)
         out2 = out2 + cost0
 
+        # pre3, post3 (b, 2*c, 192//8, H/8, W/8)
         out3, pre3, post3 = self.dres4(out2, pre1, post2)
         out3 = out3 + cost0
 
+        # (b, c -> 1, 192//4, H/4, W/4)
         cost1 = self.classif1(out1)
         cost2 = self.classif2(out2) + cost1
         cost3 = self.classif3(out3) + cost2
@@ -144,11 +157,13 @@ class PSMNet(nn.Module):
         if self.training:
             # cost1 = F.upsample(cost1, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
             # cost2 = F.upsample(cost2, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
+            # (b, 1, 192//4, H/4, W/4) -> (b, 1, 192, H, W)
             cost1 = F.interpolate(cost1, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
             cost2 = F.interpolate(cost2, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
 
             cost1 = torch.squeeze(cost1, 1)
             pred1 = F.softmax(cost1, dim=1)
+            # (b, 192, H, W) -> (b, H, W)
             pred1 = disparityregression(self.maxdisp)(pred1)
 
             cost2 = torch.squeeze(cost2, 1)
@@ -165,3 +180,15 @@ class PSMNet(nn.Module):
             return pred1, pred2, pred3
         else:
             return pred3
+
+import fire
+
+if __name__ == "__main__":
+    net = PSMNet(192).cuda()
+    Limg = torch.rand(1,3,320,1024).cuda()
+    Rimg = torch.rand(1,3,320,1024).cuda()
+    net.train()
+    p1,p2,p3 = net(Limg, Rimg)
+    print(p1.size())
+    print(p2.size())
+    print(p3.size())
