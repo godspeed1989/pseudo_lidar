@@ -99,11 +99,13 @@ python ./psmnet/finetune_3d.py --maxdisp 192 \
 ```angular2html
 # training
 python ./psmnet/submission.py \
+    --save_float \
     --loadmodel ./finetune_300.tar \
     --datapath /mine/KITTI_DAT/training/ \
     --save_path ./training_predict_disparity
 # testing
 python ./psmnet/submission.py \
+    --save_float \
     --loadmodel ./finetune_300.tar \
     --datapath /mine/KITTI_DAT/testing/ \
     --save_path ./testing_predict_disparity

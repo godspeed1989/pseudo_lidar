@@ -10,13 +10,12 @@ from view_pc_bin import view
 
 def project_disp_to_depth(calib, disp, seg_mask=None, max_high=1):
     disp[disp < 0] = 0
-    baseline = 1.35
+    baseline = 0.54
     mask = disp > 0
     if seg_mask is not None:
         mask = np.logical_and(mask, seg_mask)
     #
-    #depth = calib.f_u * baseline / (disp + 1. - mask)
-    depth = baseline / (disp + 1. - mask)
+    depth = calib.f_u * baseline / (disp + 1. - mask)
     rows, cols = depth.shape
     c, r = np.meshgrid(np.arange(cols), np.arange(rows))
     points = np.stack([c, r, depth])
@@ -40,13 +39,13 @@ if __name__ == "__main__":
 
     img_file = sys.argv[1] + '.png'
     calib_file = sys.argv[1] + '.txt'
-    depth_file = sys.argv[1] + 'd.png'
+    depth_file = sys.argv[1] + '.png.npy'
     seg_file = sys.argv[1] + 's.png'
     gt_lidar_file = sys.argv[1] + 'gt.bin'
 
     image = cv2.imread(img_file)
     calib = kitti_util.Calibration(calib_file)
-    depth_map = cv2.imread(depth_file, 0) / 256.
+    depth_map = np.load(depth_file)
     seg_map = cv2.imread(seg_file, 0)
     seg_mask = (seg_map==13).astype(np.uint8)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10)) # 椭圆
